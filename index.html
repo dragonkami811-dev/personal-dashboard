@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人用ダッシュボード</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f5f5;
+  --color-background-tertiary:#ebebeb;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#666666;
+  --color-text-tertiary:#999999;
+  --color-border-secondary:#d0d0d0;
+  --color-border-tertiary:#e0e0e0;
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','Hiragino Sans',sans-serif;
+}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary);background:var(--color-background-tertiary);min-height:100vh}
+.app{max-width:680px;margin:0 auto;padding:1rem}
+.tabs{display:flex;gap:3px;margin-bottom:1rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:4px}
+.tab{flex:1;padding:7px 4px;border:none;background:transparent;border-radius:6px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:var(--font-sans)}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500;border:0.5px solid var(--color-border-tertiary)}
+.page{display:none}.page.active{display:block}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.section-label{font-size:12px;color:var(--color-text-secondary);font-weight:500;margin-bottom:8px}
+.input-row{display:flex;gap:8px;margin-bottom:8px}
+.input-row input{flex:1;padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.btn{padding:7px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-primary);font-family:var(--font-sans);white-space:nowrap}
+.btn:hover{background:var(--color-background-secondary)}
+.btn-primary{background:#185fa5;color:#fff;border-color:#185fa5}.btn-primary:hover{background:#0c447c}
+.btn-danger{color:#a32d2d;border-color:#f09595}
+.btn-mic{padding:7px 10px}
+.mic-active{color:#a32d2d;border-color:#f09595}
+.task-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.task-item:last-child{border-bottom:none}
+.task-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#185fa5}
+.task-text{flex:1;font-size:13px}.task-text.done{text-decoration:line-through;color:var(--color-text-secondary)}
+/* 目標ツリー */
+.goal-level{margin-bottom:4px}
+.goal-body{padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid;margin-bottom:2px}
+.goal-label-badge{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;display:inline-block;margin-bottom:4px}
+.goal-text{font-size:13px;line-height:1.5}
+.goal-edit-input{font-size:13px;width:100%;border:none;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);outline:none}
+.goal-actions{display:flex;gap:4px;margin-top:4px}
+.goal-actions button{font-size:11px;padding:2px 8px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;color:var(--color-text-secondary);font-family:var(--font-sans)}
+.goal-actions button:hover{background:var(--color-background-secondary)}
+.gl-0 .goal-body{background:#f1effe;border-color:#afa9ec}.gl-0 .goal-label-badge{background:#eeedfe;color:#534ab7}
+.gl-1 .goal-body{background:#e6f1fb;border-color:#85b7eb}.gl-1 .goal-label-badge{background:#e6f1fb;color:#185fa5}
+.gl-2 .goal-body{background:#eaf3de;border-color:#97c459}.gl-2 .goal-label-badge{background:#eaf3de;color:#3b6d11}
+.gl-3 .goal-body{background:#faeeda;border-color:#ef9f27}.gl-3 .goal-label-badge{background:#faeeda;color:#854f0b}
+/* タグ */
+.tag-chip{display:inline-flex;align-items:center;gap:4px;background:#eeedfe;color:#534ab7;font-size:12px;padding:3px 10px;border-radius:20px}
+.tag-chip button{background:none;border:none;cursor:pointer;color:#534ab7;font-size:15px;line-height:1;padding:0}
+.chips-area{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;padding:4px 0}
+.tag-btn{padding:4px 12px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:var(--font-sans)}
+.tag-btn.active{background:#e6f1fb;color:#185fa5;border-color:#b5d4f4}
+/* 知識カード */
+.k-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:8px}
+.k-card-title{font-weight:500;font-size:14px;margin-bottom:4px}
+.k-card-body{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px}
+.k-card-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.label-tag{display:inline-block;background:#eeedfe;color:#534ab7;font-size:11px;padding:2px 8px;border-radius:20px}
+.k-card-date{font-size:11px;color:var(--color-text-tertiary)}
+/* メモ */
+.memo-item{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:8px}
+.memo-item-date{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+/* 日報 */
+.progress-banner{background:#eaf3de;border:0.5px solid #c0dd97;border-radius:var(--border-radius-md);padding:12px;margin-bottom:1rem;font-size:13px;color:#3b6d11}
+.empty{font-size:13px;color:var(--color-text-secondary);padding:8px 0;text-align:center}
+textarea{width:100%;padding:10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-secondary);color:var(--color-text-primary);font-family:var(--font-sans);resize:vertical;line-height:1.6}
+.report-section{margin-bottom:1rem}
+.report-section-label{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.report-auto-badge{font-size:10px;background:#eaf3de;color:#3b6d11;padding:2px 7px;border-radius:20px}
+.step-indicator{display:flex;margin-bottom:1.5rem}
+.step{flex:1;text-align:center;font-size:12px;padding:8px 4px;color:var(--color-text-secondary);border-bottom:2px solid var(--color-border-tertiary)}
+.step.active{color:#185fa5;border-bottom-color:#185fa5;font-weight:500}
+.step.done{color:#3b6d11;border-bottom-color:#639922}
+.report-step{display:none}.report-step.active{display:block}
+.saved-report{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;margin-bottom:8px;cursor:pointer}
+.saved-report:hover{border-color:var(--color-border-secondary)}
+.saved-report-date{font-size:12px;font-weight:500;margin-bottom:4px}
+.sort-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.sort-row label{font-size:12px;color:var(--color-text-secondary)}
+.report-view{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;margin-bottom:1rem;font-size:13px;line-height:1.8;white-space:pre-wrap}
+.hint{font-size:11px;color:var(--color-text-tertiary);margin-top:4px}
+.connector{margin-left:12px;width:2px;height:12px;background:var(--color-border-secondary)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="progress-banner" style="display:none" class="progress-banner"></div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')"><i class="ti ti-layout-dashboard"></i> ダッシュボード</button>
+    <button class="tab" onclick="switchTab('knowledge')"><i class="ti ti-brain"></i> 知識メモ帳</button>
+    <button class="tab" onclick="switchTab('memo')"><i class="ti ti-notes"></i> 思考メモ</button>
+    <button class="tab" onclick="switchTab('report')"><i class="ti ti-file-text"></i> 日報</button>
+  </div>
+
+  <!-- PAGE 1: ダッシュボード -->
+  <div id="page-dashboard" class="page active">
+    <div class="card">
+      <div class="section-label" style="margin-bottom:12px"><i class="ti ti-topology-star"></i> 目標ツリー</div>
+      <div id="goal-tree"></div>
+    </div>
+    <div class="card">
+      <div class="section-label"><i class="ti ti-checklist"></i> 今日のタスク</div>
+      <div id="task-list"></div>
+      <div class="input-row" style="margin-top:8px">
+        <input id="task-input" placeholder="タスクを入力..." onkeydown="if(event.key==='Enter')addTask()">
+        <button class="btn btn-mic" id="mic-task" onclick="startMic('task-input','mic-task')"><i class="ti ti-microphone"></i></button>
+        <button class="btn" onclick="addTask()">追加</button>
+      </div>
+    </div>
+    <button class="btn" onclick="openReport()" style="width:100%;text-align:center"><i class="ti ti-file-text"></i> 今日の日報を作成する</button>
+  </div>
+
+  <!-- PAGE 2: 知識メモ帳 -->
+  <div id="page-knowledge" class="page">
+    <div class="card">
+      <div class="section-label">新しい知識を追加</div>
+      <div class="input-row"><input id="k-title" placeholder="タイトル"></div>
+      <div class="input-row"><textarea id="k-body" placeholder="内容..." style="min-height:60px"></textarea></div>
+      <div class="section-label">ラベルを追加</div>
+      <div class="input-row">
+        <input id="tag-input" placeholder="ラベルを入力してEnter..." onkeydown="handleTagInput(event)">
+        <button class="btn" onclick="addTagFromBtn()">追加</button>
+      </div>
+      <div class="chips-area" id="tag-chips"></div>
+      <div class="hint" style="margin-bottom:10px">Enterまたは追加ボタンで追加、×で削除</div>
+      <div class="input-row">
+        <button class="btn btn-mic" id="mic-k" onclick="startMic('k-body','mic-k')"><i class="ti ti-microphone"></i> 音声入力</button>
+        <button class="btn btn-primary" onclick="addKnowledge()" style="margin-left:auto">保存</button>
+      </div>
+    </div>
+    <div class="sort-row">
+      <label>並び替え：</label>
+      <button class="tag-btn active" id="sort-date" onclick="setSort('date')">日時順</button>
+      <button class="tag-btn" id="sort-abc" onclick="setSort('abc')">あいうえお順</button>
+      <label style="margin-left:8px">ラベル：</label>
+      <div id="label-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="k-list"></div>
+  </div>
+
+  <!-- PAGE 3: 思考メモ -->
+  <div id="page-memo" class="page">
+    <div class="card">
+      <div class="section-label">思考メモ</div>
+      <div class="input-row"><textarea id="memo-input" placeholder="思考を自由に書く..."></textarea></div>
+      <div class="input-row">
+        <button class="btn btn-mic" id="mic-memo" onclick="startMic('memo-input','mic-memo')"><i class="ti ti-microphone"></i> 音声入力</button>
+        <button class="btn" onclick="saveMemo()" style="margin-left:auto">保存</button>
+      </div>
+    </div>
+    <div class="section-label" style="margin-bottom:8px">過去のメモ</div>
+    <div id="memo-list"></div>
+  </div>
+
+  <!-- PAGE 4: 日報 -->
+  <div id="page-report" class="page">
+    <div class="step-indicator">
+      <div class="step active" id="step-ind-1">① 日報を書く</div>
+      <div class="step" id="step-ind-2">② 明日のタスク</div>
+      <div class="step" id="step-ind-3">③ 完了・保存</div>
+    </div>
+    <div class="report-step active" id="report-step-1">
+      <div class="card">
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-sun"></i> 今日の主なできごと</div><textarea id="r-news" rows="2" placeholder="今日起きたこと..."></textarea></div>
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-check"></i> 完了タスク <span class="report-auto-badge">自動入力</span></div><textarea id="r-done" rows="3"></textarea></div>
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-circle"></i> 未完了タスク <span class="report-auto-badge">自動入力</span></div><textarea id="r-undone" rows="2"></textarea></div>
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-mood-sad"></i> うまくいかなかったこと</div><textarea id="r-issues" rows="2" placeholder="詰まったこと、反省点..."></textarea></div>
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-bulb"></i> 明日への一言</div><textarea id="r-next" rows="2" placeholder="明日意識したいこと..."></textarea></div>
+        <div class="report-section"><div class="report-section-label"><i class="ti ti-book"></i> 今日のインプット</div><textarea id="r-input" rows="2" placeholder="読んだ記事、話した人..."></textarea></div>
+        <div class="report-section" style="margin-bottom:0"><div class="report-section-label"><i class="ti ti-message-circle"></i> よもやま話</div><textarea id="r-misc" rows="2" placeholder="思ったこと、雑記..."></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-mic" id="mic-report" onclick="startMic('r-misc','mic-report')"><i class="ti ti-microphone"></i> 音声（よもやま）</button>
+        <button class="btn btn-primary" onclick="goStep(2)">次へ：明日のタスク <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+    <div class="report-step" id="report-step-2">
+      <div class="card">
+        <div class="section-label"><i class="ti ti-calendar-plus"></i> 明日やること</div>
+        <div id="tomorrow-task-list"></div>
+        <div class="input-row" style="margin-top:8px">
+          <input id="tomorrow-input" placeholder="明日のタスクを入力..." onkeydown="if(event.key==='Enter')addTomorrowTask()">
+          <button class="btn btn-mic" id="mic-tomorrow" onclick="startMic('tomorrow-input','mic-tomorrow')"><i class="ti ti-microphone"></i></button>
+          <button class="btn" onclick="addTomorrowTask()">追加</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:space-between">
+        <button class="btn" onclick="goStep(1)"><i class="ti ti-arrow-left"></i> 戻る</button>
+        <button class="btn btn-primary" onclick="goStep(3)">日報を完成させる <i class="ti ti-check"></i></button>
+      </div>
+    </div>
+    <div class="report-step" id="report-step-3">
+      <div class="card">
+        <div class="section-label" style="margin-bottom:12px"><i class="ti ti-file-check"></i> 本日の日報</div>
+        <div class="report-view" id="report-preview"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn" onclick="goStep(1)"><i class="ti ti-edit"></i> 編集に戻る</button>
+          <button class="btn" onclick="copyReport()"><i class="ti ti-copy"></i> コピー</button>
+          <button class="btn btn-primary" onclick="saveReport()"><i class="ti ti-device-floppy"></i> 保存</button>
+        </div>
+      </div>
+      <div class="section-label" style="margin-bottom:8px">過去の日報</div>
+      <div id="saved-reports-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEVELS=[
+  {key:'long',label:'長期目標',icon:'ti-flag'},
+  {key:'year',label:'今年の目標',icon:'ti-calendar'},
+  {key:'month',label:'今月の目標',icon:'ti-calendar-month'},
+  {key:'week',label:'今週の目標',icon:'ti-calendar-week'},
+];
+
+let goals=JSON.parse(localStorage.getItem('goalsV2')||JSON.stringify({long:'',year:'',month:'',week:''}));
+let tasks=JSON.parse(localStorage.getItem('tasks')||'[]');
+let knowledge=JSON.parse(localStorage.getItem('knowledge')||'[]');
+let memos=JSON.parse(localStorage.getItem('memos')||'[]');
+let savedReports=JSON.parse(localStorage.getItem('savedReports')||'[]');
+let tomorrowTasks=[];
+let currentTags=[];
+let activeLabels=[];
+let sortMode='date';
+let reportShown=false;
+let editing={};
+
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function today(){return new Date().toISOString().slice(0,10);}
+function tomorrow(){const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().slice(0,10);}
+function fmtDate(iso){const d=new Date(iso);return`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function switchTab(tab){
+  const names=['dashboard','knowledge','memo','report'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===tab));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+}
+
+/* 目標ツリー */
+function renderGoalTree(){
+  const el=document.getElementById('goal-tree');
+  let html='';
+  LEVELS.forEach((lv,i)=>{
+    const val=goals[lv.key]||'';
+    const isEditing=editing[lv.key];
+    html+=`<div class="goal-level gl-${i}" style="margin-left:${i*20}px">
+      <div class="goal-body">
+        <div class="goal-label-badge"><i class="ti ${lv.icon}"></i> ${lv.label}</div>
+        <div class="goal-text">
+          ${isEditing
+            ?`<input class="goal-edit-input" id="edit-${lv.key}" value="${esc(val)}" placeholder="${lv.label}を入力..." onkeydown="if(event.key==='Enter')saveGoal('${lv.key}')">`
+            :`<span style="color:${val?'var(--color-text-primary)':'var(--color-text-tertiary)'}">${val||'未設定（編集ボタンで入力）'}</span>`
+          }
+        </div>
+        <div class="goal-actions">
+          ${isEditing
+            ?`<button onclick="saveGoal('${lv.key}')"><i class="ti ti-check"></i> 保存</button><button onclick="cancelEdit('${lv.key}')">キャンセル</button>`
+            :`<button onclick="startEdit('${lv.key}')"><i class="ti ti-edit"></i> 編集</button>${val?`<button onclick="clearGoal('${lv.key}')" style="color:#a32d2d">クリア</button>`:''}`
+          }
+        </div>
+      </div>
+      ${i<LEVELS.length-1?`<div class="connector"></div>`:''}
+    </div>`;
+  });
+  el.innerHTML=html;
+  if(Object.keys(editing).length){
+    const key=Object.keys(editing)[0];
+    const inp=document.getElementById('edit-'+key);
+    if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
+  }
+}
+function startEdit(key){editing={[key]:true};renderGoalTree();}
+function cancelEdit(key){delete editing[key];renderGoalTree();}
+function saveGoal(key){
+  const inp=document.getElementById('edit-'+key);
+  if(inp) goals[key]=inp.value.trim();
+  save('goalsV2',goals);delete editing[key];renderGoalTree();
+}
+function clearGoal(key){goals[key]='';save('goalsV2',goals);renderGoalTree();}
+
+/* タスク */
+function addTask(){
+  const v=document.getElementById('task-input').value.trim();if(!v)return;
+  tasks.push({id:Date.now(),text:v,done:false,date:today()});save('tasks',tasks);
+  document.getElementById('task-input').value='';renderTasks();
+}
+function toggleTask(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);save('tasks',tasks);renderTasks();}
+function deleteTask(id){tasks=tasks.filter(t=>t.id!==id);save('tasks',tasks);renderTasks();}
+function renderTasks(){
+  const el=document.getElementById('task-list');
+  const tt=tasks.filter(t=>t.date===today());
+  if(!tt.length){el.innerHTML='<div class="empty">今日のタスクはまだありません</div>';return;}
+  el.innerHTML=tt.map(t=>`<div class="task-item"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})"><span class="task-text ${t.done?'done':''}">${esc(t.text)}</span><button class="btn btn-danger" style="padding:4px 10px;font-size:12px" onclick="deleteTask(${t.id})"><i class="ti ti-trash"></i></button></div>`).join('');
+}
+
+/* タグ */
+function handleTagInput(e){if(e.key==='Enter'){e.preventDefault();addTagFromBtn();}}
+function addTagFromBtn(){
+  const input=document.getElementById('tag-input');
+  const v=input.value.trim();
+  if(v&&!currentTags.includes(v)){currentTags.push(v);renderTagChips();}
+  input.value='';input.focus();
+}
+function removeTag(tag){currentTags=currentTags.filter(t=>t!==tag);renderTagChips();}
+function renderTagChips(){
+  document.getElementById('tag-chips').innerHTML=currentTags.length
+    ?currentTags.map(t=>`<span class="tag-chip">${esc(t)}<button onclick="removeTag('${esc(t)}')" aria-label="削除">×</button></span>`).join('')
+    :'<span style="font-size:12px;color:var(--color-text-tertiary)">まだラベルがありません</span>';
+}
+
+/* 知識メモ帳 */
+function addKnowledge(){
+  const title=document.getElementById('k-title').value.trim();
+  const body=document.getElementById('k-body').value.trim();
+  if(!title)return;
+  knowledge.push({id:Date.now(),title,body,labels:[...currentTags],date:new Date().toISOString()});
+  save('knowledge',knowledge);
+  document.getElementById('k-title').value='';document.getElementById('k-body').value='';
+  currentTags=[];renderTagChips();renderKnowledge();
+}
+function setSort(mode){
+  sortMode=mode;
+  document.getElementById('sort-date').classList.toggle('active',mode==='date');
+  document.getElementById('sort-abc').classList.toggle('active',mode==='abc');
+  renderKnowledge();
+}
+function toggleFilterLabel(label){
+  if(activeLabels.includes(label)) activeLabels=activeLabels.filter(l=>l!==label);
+  else activeLabels.push(label);
+  renderKnowledge();
+}
+function renderKnowledge(){
+  const allLabels=[...new Set(knowledge.flatMap(k=>k.labels||[]))];
+  document.getElementById('label-filters').innerHTML=[
+    `<button class="tag-btn ${activeLabels.length===0?'active':''}" onclick="activeLabels=[];renderKnowledge()">すべて</button>`,
+    ...allLabels.map(l=>`<button class="tag-btn ${activeLabels.includes(l)?'active':''}" onclick="toggleFilterLabel('${esc(l)}')">${esc(l)}</button>`)
+  ].join('');
+  let list=knowledge.filter(k=>activeLabels.length===0||activeLabels.every(al=>(k.labels||[]).includes(al)));
+  if(sortMode==='abc') list=[...list].sort((a,b)=>a.title.localeCompare(b.title,'ja'));
+  else list=[...list].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const el=document.getElementById('k-list');
+  if(!list.length){el.innerHTML='<div class="empty">まだ知識はありません</div>';return;}
+  el.innerHTML=list.map(k=>`<div class="k-card"><div class="k-card-title">${esc(k.title)}</div><div class="k-card-body">${esc(k.body)}</div><div class="k-card-meta">${(k.labels||[]).map(l=>`<span class="label-tag">${esc(l)}</span>`).join('')}<span class="k-card-date">${fmtDate(k.date)}</span><button class="btn btn-danger" style="margin-left:auto;padding:4px 10px;font-size:12px" onclick="deleteK(${k.id})"><i class="ti ti-trash"></i></button></div></div>`).join('');
+}
+function deleteK(id){knowledge=knowledge.filter(k=>k.id!==id);save('knowledge',knowledge);renderKnowledge();}
+
+/* 思考メモ */
+function saveMemo(){
+  const v=document.getElementById('memo-input').value.trim();if(!v)return;
+  memos.unshift({id:Date.now(),text:v,date:new Date().toISOString()});save('memos',memos);
+  document.getElementById('memo-input').value='';renderMemos();
+}
+function renderMemos(){
+  const el=document.getElementById('memo-list');
+  if(!memos.length){el.innerHTML='<div class="empty">メモはまだありません</div>';return;}
+  el.innerHTML=memos.map(m=>`<div class="memo-item"><div class="memo-item-date">${fmtDate(m.date)}</div><div style="font-size:13px;line-height:1.6">${esc(m.text)}</div><button class="btn btn-danger" style="margin-top:8px;padding:4px 10px;font-size:12px" onclick="deleteMemo(${m.id})"><i class="ti ti-trash"></i></button></div>`).join('');
+}
+function deleteMemo(id){memos=memos.filter(m=>m.id!==id);save('memos',memos);renderMemos();}
+
+/* 日報 */
+function openReport(){
+  const tt=tasks.filter(t=>t.date===today());
+  document.getElementById('r-done').value=tt.filter(t=>t.done).map(t=>'✓ '+t.text).join('\n')||'（なし）';
+  document.getElementById('r-undone').value=tt.filter(t=>!t.done).map(t=>'○ '+t.text).join('\n')||'（なし）';
+  switchTab('report');goStep(1);
+}
+function goStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('report-step-'+i).classList.toggle('active',i===n);
+    const ind=document.getElementById('step-ind-'+i);
+    ind.classList.remove('active','done');
+    if(i===n) ind.classList.add('active');
+    else if(i<n) ind.classList.add('done');
+  });
+  if(n===2) renderTomorrowTasks();
+  if(n===3) buildPreview();
+}
+function addTomorrowTask(){
+  const v=document.getElementById('tomorrow-input').value.trim();if(!v)return;
+  tomorrowTasks.push({id:Date.now(),text:v});
+  document.getElementById('tomorrow-input').value='';renderTomorrowTasks();
+}
+function deleteTomorrowTask(id){tomorrowTasks=tomorrowTasks.filter(t=>t.id!==id);renderTomorrowTasks();}
+function renderTomorrowTasks(){
+  const el=document.getElementById('tomorrow-task-list');
+  if(!tomorrowTasks.length){el.innerHTML='<div class="empty">明日のタスクを追加してください</div>';return;}
+  el.innerHTML=tomorrowTasks.map(t=>`<div class="task-item"><i class="ti ti-arrow-right" style="color:var(--color-text-secondary)"></i><span class="task-text">${esc(t.text)}</span><button class="btn btn-danger" style="padding:4px 10px;font-size:12px" onclick="deleteTomorrowTask(${t.id})"><i class="ti ti-trash"></i></button></div>`).join('');
+}
+function buildPreview(){
+  const v=id=>document.getElementById(id).value.trim()||'（未記入）';
+  const goalLines=LEVELS.map(lv=>`  ${lv.label}：${goals[lv.key]||'未設定'}`).join('\n');
+  const lines=[
+    `【${today()} 日報】`,'',
+    '■ 目標',goalLines,'',
+    '■ 今日の主なできごと',v('r-news'),'',
+    '■ 完了タスク',v('r-done'),'',
+    '■ 未完了タスク',v('r-undone'),'',
+    '■ うまくいかなかったこと',v('r-issues'),'',
+    '■ 明日への一言',v('r-next'),'',
+    '■ 今日のインプット',v('r-input'),'',
+    '■ よもやま話',v('r-misc'),'',
+    '■ 明日のタスク',
+    tomorrowTasks.length?tomorrowTasks.map(t=>'→ '+t.text).join('\n'):'（未設定）',
+  ];
+  document.getElementById('report-preview').textContent=lines.join('\n');
+  renderSavedReports();
+}
+function copyReport(){navigator.clipboard.writeText(document.getElementById('report-preview').textContent).then(()=>alert('コピーしました！'));}
+function saveReport(){
+  savedReports.unshift({id:Date.now(),date:today(),text:document.getElementById('report-preview').textContent});
+  save('savedReports',savedReports);
+  tomorrowTasks.forEach(t=>tasks.push({id:Date.now()+Math.random(),text:t.text,done:false,date:tomorrow()}));
+  save('tasks',tasks);tomorrowTasks=[];
+  alert('保存しました！明日のタスクも登録されました。');
+  renderSavedReports();renderTomorrowTasks();
+}
+function renderSavedReports(){
+  const el=document.getElementById('saved-reports-list');
+  if(!savedReports.length){el.innerHTML='<div class="empty">保存された日報はありません</div>';return;}
+  el.innerHTML=savedReports.map(r=>`<div class="saved-report" onclick="viewReport(${r.id})"><div class="saved-report-date"><i class="ti ti-file-text"></i> ${r.date}</div><div style="font-size:12px;color:var(--color-text-secondary)">${esc(r.text.slice(0,60))}...</div></div>`).join('');
+}
+function viewReport(id){
+  const r=savedReports.find(x=>x.id===id);if(!r)return;
+  document.getElementById('report-preview').textContent=r.text;goStep(3);
+}
+
+/* 音声入力 */
+function startMic(targetId,btnId){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){alert('音声入力はChromeでのみ動作します');return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const r=new SR();r.lang='ja-JP';r.interimResults=false;
+  const btn=document.getElementById(btnId);btn.classList.add('mic-active');
+  r.onresult=e=>{
+    const txt=e.results[0][0].transcript;
+    const el=document.getElementById(targetId);
+    if(el.tagName==='TEXTAREA') el.value+=(el.value?'\n':'')+txt;
+    else el.value=txt;
+    btn.classList.remove('mic-active');
+  };
+  r.onerror=r.onend=()=>btn.classList.remove('mic-active');
+  r.start();
+}
+
+/* 起動処理 */
+function showProgress(){
+  const tt=tasks.filter(t=>t.date===today());
+  const undone=tt.filter(t=>!t.done);if(!tt.length)return;
+  const b=document.getElementById('progress-banner');
+  b.innerHTML=undone.length===0
+    ?'<i class="ti ti-circle-check"></i> 今日のタスクはすべて完了！'
+    :`<i class="ti ti-alert-circle"></i> 未完了タスクが <strong>${undone.length}件</strong>：${undone.map(t=>esc(t.text)).join('、')}`;
+  b.style.display='block';
+}
+
+renderTagChips();renderGoalTree();renderTasks();renderKnowledge();renderMemos();renderSavedReports();showProgress();
+setInterval(()=>{if(new Date().getHours()===17&&!reportShown){reportShown=true;openReport();}},60000);
+if(new Date().getHours()===17) openReport();
+</script>
+</body>
+</html>
